@@ -18,18 +18,67 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+```mermaid
+graph TB
+    A[CloudFront Distribution] -->|origin| B[API Gateway]
+    B --> C["API Gateway Method (Root)"]
+    B --> D["API Gateway Resource (Wildcard Path)"]
+    C --> E["API Gateway Integration (Root)"]
+    D --> F["API Gateway Method (Wildcard Path)"]
+    E --> G[API Gateway Deployment]
+    F --> H["API Gateway Integration (Wildcard Path)"]
+    G --> I[API Gateway Stage]
+    H --> G
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+cloud front
+↓
+API Gateway
+↓
+lambda（next.jsのimage）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+の順で処理される。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-# next-template
+
+lambdaのimageはlambda専用のものしか使えない
+
+
+execコマンドとは？
+
+デプロイ方法
+
+
+認証
+```
+make exec-vault
+```
+
+```
+npm run build
+```
+
+ビルド
+```
+docker build -t next_sample . --platform linux/amd64
+```
+
+タグをECR用にする
+```
+docker tag next_sample:latest 945895768821.dkr.ecr.ap-northeast-1.amazonaws.com/sample_lambda_repo
+```
+
+
+```
+aws ecr get-login-password --region ap-northeast-1 --profile private-user | docker login --username AWS --password-stdin 945895768821.dkr.ecr.ap-northeast-1.amazonaws.com
+```
+
+```
+docker push 945895768821.dkr.ecr.ap-northeast-1.amazonaws.com/sample_lambda_repo
+```
+
+```
+aws lambda update-function-code --function-name sampleLambdaRepo --image-uri 945895768821.dkr.ecr.ap-northeast-1.amazonaws.com/sample_lambda_repo:latest
+```
